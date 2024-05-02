@@ -87,3 +87,17 @@ textarea {
     color: #16C0B0;
     text-decoration: underline;
 }
+
+.outOfStock {
+    text-decoration: line-through;
+}
+
+.radio {
+    width: 50%;
+    margin: 0;
+    padding: 0;
+}
+
+.radio-flex {
+    display: flex;
+}
