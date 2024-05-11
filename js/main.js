@@ -170,7 +170,13 @@ Vue.component('product-review', {
             review: null,
             rating: null,
             recommend: null,
-            errors: []
+            errors: [],
+            editFlag: false,
+            editForName: null,
+            editForReview: null,
+            editForRating: null,
+            editForRecommend: null,
+            editForErrors: [],
         }
     },
 
@@ -181,7 +187,13 @@ Vue.component('product-review', {
                     name: this.name,
                     review: this.review,
                     rating: this.rating,
-                    recommend: this.recommend
+                    recommend: this.recommend,
+                    editFlag: false,
+                    editForName: this.name,
+                    editForReview: this.review,
+                    editForRating: this.rating,
+                    editForRecommend: this.recommend,
+                    editForErrors: [],
                 }
                 eventBus.$emit('review-submitted', productReview)
                 this.name = null
@@ -223,11 +235,56 @@ Vue.component('product-tabs', {
        <div v-show="selectedTab === 'Reviews'">
          <p v-if="!reviews.length">There are no reviews yet.</p>
          <ul>
-           <li v-for="review in reviews">
+           <li v-for="(review, index) in reviews">
            <p>{{ review.name }}</p>
            <p>Rating: {{ review.rating }}</p>
            <p>{{ review.review }}</p>
            <p>Recommend: {{ review.recommend }}</p>
+           <button @click="editReviews(index)" v-show="review.rating < 4">edit</button>
+           <div v-if="review.editFlag">
+                <form class="review-form" @submit.prevent="onSubmit">
+                    <p v-if="review.editForErrors.length">
+                    <b>Please correct the following error(s):</b>
+                    <ul>
+                        <li v-for="error in review.editForErrors">{{ error }}</li>
+                    </ul>
+                    </p>
+                    <p>
+                        <label for="name">Name:</label>
+                        <input id="name" v-model="review.editForName" placeholder="name">
+                    </p>
+                    
+                    <p>
+                        <label for="review">Review:</label>
+                        <textarea id="review" v-model="review.editForReview"></textarea>
+                    </p>
+                    
+                    <p>
+                        <label for="review.editForRating">Rating:</label>
+                        <select id="rating" v-model.number="review.editForRating">
+                        <option>5</option>
+                        <option>4</option>
+                        <option>3</option>
+                        <option>2</option>
+                        <option>1</option>
+                        </select>
+                    </p>
+                
+                    <p>
+                        <p>Would you recommend this product?</p>
+                        <div class="radio-flex">
+                            <label for="recommendYes">Yes</label>
+                            <input class="radio" id="recommendYes" type="radio" name="recommend" value="Yes" v-model="review.editForRecommend"> 
+                            <label for="recommendNo">No</label>
+                            <input class="radio" id="recommendNo" type="radio" name="recommend" value="No" v-model="review.editForRecommend"> 
+                        </div>
+                    </p>
+                    
+                    <p>
+                        <button @click.prevent="onSubmit(index)">edit</button>
+                    </p>
+                </form>
+            </div>
            </li>
          </ul>
        </div>
@@ -257,6 +314,28 @@ Vue.component('product-tabs', {
             } else {
                 return 2.99
             }
+        }
+    },
+    methods: {
+        editReviews(index) {
+            let blank = this.reviews[index];
+            blank.editFlag = true;
+        },
+        onSubmit(index) {
+            if(this.reviews[index].editForName && this.reviews[index].editForReview && this.reviews[index].editForRating && this.reviews[index].editForRecommend && this.reviews[index].editForErrors) {
+                this.reviews[index].name = this.reviews[index].editForName;
+                this.reviews[index].review = this.reviews[index].editForReview;
+                this.reviews[index].rating = this.reviews[index].editForRating;
+                this.reviews[index].recommend = this.reviews[index].editForRecommend;
+                this.reviews[index].editForErrors = []
+                this.reviews[index].editFlag = false;
+            } else {
+                if(!this.reviews[index].editForName) this.reviews[index].editForErrors.push("Name required.")
+                if(!this.reviews[index].editForReview) this.reviews[index].editForErrors.push("Review required.")
+                if(!this.reviews[index].editForRating) this.reviews[index].editForErrors.push("Rating required.")
+                if(!this.reviews[index].editForRecommend) this.reviews[index].editForErrors.push("Recommend required.")
+            }
+
         }
     }
 })
